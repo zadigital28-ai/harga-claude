@@ -499,7 +499,7 @@ const CSV_TESTI    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haM
 // Ubah angka di bawah. Default 2 menit.
 // Set ke 0 untuk selalu fetch fresh (tidak direkomendasikan, lambat)
 // ------------------------------------------------------------
-const CACHE_MINUTES = 2;
+const CACHE_MINUTES = 0; // 0 = selalu fetch fresh setiap refresh. Isi angka menit jika ingin cache.
 
 const WA_DEFAULT = '6285385535252';
 const PER_PAGE   = 20;
@@ -688,32 +688,43 @@ function applyBranding(data){
 }
 
 function applyColors(){
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  // Helper: set CSS var if value exists, remove override if not (falls back to :root default)
-  const set=(p,v)=>{
-    if(v&&v.trim()) document.documentElement.style.setProperty(p,v.trim());
-    else document.documentElement.style.removeProperty(p);
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  // Hanya set CSS var yang ada nilainya dari sheet.
+  // Jika kosong, CSS akan pakai nilai default dari :root di bagian atas file.
+  const set = (prop, val) => {
+    if (val && val.trim()) {
+      document.documentElement.style.setProperty(prop, val.trim());
+    } else {
+      document.documentElement.style.removeProperty(prop);
+    }
   };
-  if(dark){
-    set('--color-bg',      branding.color_dark_bg      || branding.color_default   || '');
-    set('--color-surface', branding.color_dark_surface || '');
-    set('--color-surface2',branding.color_dark_surface ? branding.color_dark_surface : '');
-    set('--color-accent',  branding.color_dark_accent  || branding.color_accent     || '');
-    set('--color-secondary',branding.color_secondary   || '');
-    set('--color-text',    branding.color_dark_text    || branding.color_accent     || '');
-    set('--color-text-muted', '');
-    set('--color-border',  '');
-    set('--color-overlay', '');
+
+  if (dark) {
+    // Warna dark mode dari sheet (key: color_dark_bg, color_dark_surface, dst)
+    set('--color-bg',        branding.color_dark_bg);
+    set('--color-surface',   branding.color_dark_surface);
+    set('--color-accent',    branding.color_dark_accent);
+    set('--color-secondary', branding.color_secondary);
+    set('--color-text',      branding.color_dark_text);
+    // color_default dipakai sebagai fallback bg jika color_dark_bg kosong
+    if (!branding.color_dark_bg && branding.color_default) {
+      set('--color-bg', branding.color_default);
+    }
+    // color_accent dipakai sebagai fallback text jika color_dark_text kosong
+    if (!branding.color_dark_text && branding.color_accent) {
+      set('--color-text', branding.color_accent);
+    }
   } else {
-    set('--color-bg',      branding.color_light_bg      || '');
-    set('--color-surface', branding.color_light_surface || '');
-    set('--color-surface2',branding.color_light_surface || '');
-    set('--color-accent',  branding.color_light_accent  || branding.color_secondary || '');
-    set('--color-secondary',branding.color_default      || '');
-    set('--color-text',    branding.color_light_text    || branding.color_default   || '');
-    set('--color-text-muted', '');
-    set('--color-border',  '');
-    set('--color-overlay', '');
+    // Warna light mode dari sheet (key: color_light_bg, color_light_surface, dst)
+    set('--color-bg',        branding.color_light_bg);
+    set('--color-surface',   branding.color_light_surface);
+    set('--color-accent',    branding.color_light_accent);
+    set('--color-secondary', branding.color_secondary);
+    set('--color-text',      branding.color_light_text);
+    // fallback
+    if (!branding.color_light_accent && branding.color_secondary) {
+      set('--color-accent', branding.color_secondary);
+    }
   }
 }
 function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t}
