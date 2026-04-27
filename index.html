@@ -54,6 +54,8 @@
     @keyframes zfadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     @keyframes zshimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
     @keyframes zscroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    /* Testimoni marquee speed: increase seconds = slower */
+    /* Currently 70s per full loop. Edit the animation-duration below to adjust. */
 
     /* POPUP */
     #popup-overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s}
@@ -188,8 +190,9 @@
 
     /* TESTIMONI — auto-scroll marquee */
     #testimoni{background:var(--color-surface);border-top:1px solid var(--color-border);overflow:hidden}
-    .testi-track-wrap{position:relative}
-    .testi-track{display:flex;gap:16px;width:max-content;animation:zscroll 40s linear infinite}
+    .testi-track-wrap{position:relative;overflow:hidden}
+    /* ↓ Ubah angka detik (70s) untuk mengatur kecepatan scroll: lebih besar = lebih lambat */
+    .testi-track{display:flex;gap:16px;width:max-content;animation:zscroll 70s linear infinite}
     .testi-track.paused{animation-play-state:paused}
     .testi-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius);padding:20px;width:300px;flex-shrink:0;transition:border-color var(--transition)}
     .testi-card:hover{border-color:rgba(14,238,247,0.25)}
@@ -198,11 +201,10 @@
     .testi-footer-row{display:flex;align-items:center;justify-content:space-between}
     .testi-nama{font-family:var(--font-display);font-weight:700;font-size:0.88rem;color:var(--color-text)}
     .testi-platform{font-size:0.75rem;color:var(--color-text-muted)}
-    /* Scroll nav arrows for testimoni */
-    .testi-nav{display:none;justify-content:flex-end;gap:8px;margin-top:16px}
-    #testimoni:hover .testi-nav{display:flex}
-    .testi-nav-btn{width:36px;height:36px;border-radius:50%;background:var(--color-surface2);border:1px solid var(--color-border);color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;transition:all var(--transition)}
-    .testi-nav-btn:hover{border-color:var(--color-accent);color:var(--color-accent)}
+    /* Testimoni nav — always visible */
+    .testi-nav{display:flex;justify-content:center;gap:10px;margin-top:20px}
+    .testi-nav-btn{width:40px;height:40px;border-radius:50%;background:var(--color-surface2);border:1px solid var(--color-border);color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all var(--transition)}
+    .testi-nav-btn:hover{border-color:var(--color-accent);color:var(--color-accent);background:var(--color-surface)}
 
     /* CATATAN */
     #catatan{border-top:1px solid var(--color-border)}
@@ -476,25 +478,51 @@
 
 <script>
 // ===== CONFIG =====
-const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub';
-const CSV_BRANDING = SHEET_BASE + '?gid=0&single=true&output=csv';
-const CSV_DATA     = SHEET_BASE + '?gid=1910038505&single=true&output=csv';
-const CSV_TESTI    = SHEET_BASE + '?gid=1790988718&single=true&output=csv';
-const WA_DEFAULT   = '6285385535252';
-const PER_PAGE     = 20;
+// ------------------------------------------------------------
+// GANTI URL SPREADSHEET DI SINI
+// Cara mendapatkan URL:
+//   1. Buka Google Sheets → File → Share → Publish to web
+//   2. Pilih sheet yang diinginkan → format CSV → Publish
+//   3. Copy URL yang muncul, paste di bawah
+// ------------------------------------------------------------
+const CSV_BRANDING = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=0&single=true&output=csv';
+const CSV_DATA     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=1910038505&single=true&output=csv';
+const CSV_TESTI    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=1790988718&single=true&output=csv';
+// ------------------------------------------------------------
+// CACHE: berapa menit data di-cache di browser sebelum fetch ulang
+// Ubah angka di bawah. Default 2 menit.
+// Set ke 0 untuk selalu fetch fresh (tidak direkomendasikan, lambat)
+// ------------------------------------------------------------
+const CACHE_MINUTES = 2;
 
-// simple-icons CDN for platform logos
+const WA_DEFAULT = '6285385535252';
+const PER_PAGE   = 20;
+
+// simple-icons CDN — nama platform di spreadsheet harus cocok dengan key di bawah (huruf kecil)
 const PLATFORM_ICONS = {
-  instagram:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/instagram.svg',
-  tiktok:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/tiktok.svg',
-  youtube:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/youtube.svg',
-  facebook:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/facebook.svg',
-  twitter:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/twitter.svg',
-  spotify:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/spotify.svg',
-  telegram:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/telegram.svg',
-  threads:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/threads.svg',
-  linkedin:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/linkedin.svg',
-  x:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/x.svg',
+  instagram:  'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/instagram.svg',
+  tiktok:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/tiktok.svg',
+  youtube:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/youtube.svg',
+  facebook:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/facebook.svg',
+  twitter:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/twitter.svg',
+  x:          'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/x.svg',
+  spotify:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/spotify.svg',
+  telegram:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/telegram.svg',
+  threads:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/threads.svg',
+  linkedin:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/linkedin.svg',
+  whatsapp:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/whatsapp.svg',
+  pinterest:  'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/pinterest.svg',
+  snapchat:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/snapchat.svg',
+  discord:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/discord.svg',
+  twitch:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/twitch.svg',
+  reddit:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/reddit.svg',
+  shopee:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/shopee.svg',
+  tokopedia:  'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/tokopedia.svg',
+  line:       'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/line.svg',
+  wechat:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/wechat.svg',
+  soundcloud: 'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/soundcloud.svg',
+  apple:      'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/apple.svg',
+  google:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/google.svg',
 };
 
 // Social links for footer — use real SVG icons
@@ -536,14 +564,22 @@ function parseCSV(text){
   return out;
 }
 async function fetchCSV(url,key){
-  try{const c=sessionStorage.getItem(key);if(c)return JSON.parse(c)}catch(e){}
-  for(const u of[url+'&t='+Date.now(),url]){
+  // Time-based cache: expires after CACHE_MINUTES. Change CACHE_MINUTES above to control freshness.
+  if(CACHE_MINUTES>0){
     try{
-      const r=await fetch(u);if(!r.ok)continue;
+      const raw=sessionStorage.getItem(key);
+      if(raw){const{ts,data}=JSON.parse(raw);if(Date.now()-ts<CACHE_MINUTES*60*1000)return data;}
+    }catch(e){}
+  }
+  // Fetch fresh data from Google Sheets CSV
+  const bust=Math.floor(Date.now()/((CACHE_MINUTES||1)*60000));
+  for(const u of[url+'&_cb='+bust,url]){
+    try{
+      const r=await fetch(u,{cache:'no-store'});if(!r.ok)continue;
       const t=await r.text();
       if(!t||t.trim().startsWith('<'))continue;
       const d=parseCSV(t);
-      try{sessionStorage.setItem(key,JSON.stringify(d))}catch(e){}
+      try{sessionStorage.setItem(key,JSON.stringify({ts:Date.now(),data:d}))}catch(e){}
       return d;
     }catch(e){console.warn('fetch fail',u,e.message)}
   }
@@ -837,15 +873,18 @@ function buildTestimoni(data){
   section.addEventListener('mouseleave',()=>track.classList.remove('paused'));
 }
 
-let testiScrollOffset=0;
+// Testimoni manual scroll — pauses animation and scrolls container
 function scrollTesti(dir){
   const track=document.getElementById('testi-track');
   if(!track)return;
-  testiScrollOffset+=dir*316; // card width + gap
-  track.style.transform=`translateX(${-testiScrollOffset}px)`;
-  track.style.transition='transform 0.4s ease';
-  // After manual scroll, re-enable animation offset
-  setTimeout(()=>{track.style.transition=''},500);
+  // Pause auto-scroll
+  track.classList.add('paused');
+  // Scroll by one card width (300px card + 16px gap)
+  const wrap=track.parentElement;
+  wrap.scrollBy({left:dir*316,behavior:'smooth'});
+  // Resume auto-scroll after 4 seconds of inactivity
+  clearTimeout(window._testiResumeTimer);
+  window._testiResumeTimer=setTimeout(()=>track.classList.remove('paused'),4000);
 }
 
 // ===== SKELETON =====
