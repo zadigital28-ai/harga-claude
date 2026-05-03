@@ -769,14 +769,14 @@ function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t}
 function buildServices(data){
   allServices=data.map((r,i)=>({
     id:i,
-    nama:r.nama_layanan||'',
-    platform:r.platform||'',
+    nama:r.nama_produk||r.nama_layanan||'',
+    platform:r.jenis||r.platform||'',
     jenis:r.jenis_layanan||'',
     harga:parseInt((r.harga||'0').replace(/\D/g,''))||0,
     satuan:r.satuan||'',
     badge:r.badge||'',
     stok:r.stok||'tersedia',
-    deskripsi:r.deskripsi||'',
+    deskripsi:r.deskripsi_singkat||r.deskripsi||'',
   })).filter(s=>s.nama);
   buildPlatformTabs();
   applyFilters();
