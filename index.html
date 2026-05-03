@@ -223,11 +223,26 @@
     .social-link:hover img{filter:invert(70%) sepia(60%) saturate(600%) hue-rotate(150deg)}
     [data-theme="light"] .social-link img{filter:invert(20%) sepia(20%) saturate(400%) hue-rotate(200deg)}
     /* WA icon gets green tint */
-    .social-link-wa img{filter:invert(55%) sepia(80%) saturate(400%) hue-rotate(90deg) brightness(0.9)}
-    .social-link-wa:hover{border-color:#25d366}
+    .social-link-wa:hover{border-color:var(--color-accent)}
     .social-link-wa:hover img{filter:invert(60%) sepia(90%) saturate(500%) hue-rotate(90deg)}
     .footer-wa{display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:50px;background:#25d366;color:#fff;font-family:var(--font-display);font-weight:700;font-size:0.9rem;transition:all var(--transition)}
     .footer-wa:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(37,211,102,0.4)}
+    
+    /* FAQ */
+    .faq-item{border-bottom:1px solid var(--color-border);padding:15px 0}
+    .faq-question{width:100%;text-align:left;font-size:1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;color:var(--color-text);font-family:var(--font-display)}
+    .faq-question::after{content:'+';font-size:1.5rem;color:var(--color-accent);transition:transform 0.3s;flex-shrink:0}
+    .faq-item.active .faq-question::after{transform:rotate(45deg)}
+    .faq-answer{display:grid;grid-template-rows:0fr;transition:grid-template-rows 0.3s ease;color:var(--color-text-body);font-size:0.9rem;line-height:1.6}
+    .faq-answer > div{overflow:hidden}
+    .faq-item.active .faq-answer{grid-template-rows:1fr}
+
+    /* JASA LAIN */
+    .jasa-lain-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);padding:24px;text-align:center;max-width:500px;margin:0 auto;box-shadow:var(--shadow-glow)}
+    .jasa-lain-card h3{font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--color-text);margin-bottom:10px}
+    .jasa-lain-card p{color:var(--color-text-muted);font-size:0.9rem;margin-bottom:20px;line-height:1.5}
+    .jasa-lain-btn{display:inline-flex;padding:10px 24px;background:var(--color-accent);color:var(--color-bg);border-radius:50px;font-weight:700;font-size:0.9rem;font-family:var(--font-display);transition:all var(--transition)}
+    .jasa-lain-btn:hover{transform:translateY(-2px);opacity:0.9}
     .footer-copy{font-size:0.78rem;color:var(--color-text-muted);text-align:center}
     /* Testimoni outer wrapper keeps nav outside scrollable area */
     .testi-outer{display:flex;flex-direction:column;gap:0}
@@ -407,14 +422,33 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="search-input" placeholder="Cari layanan..." />
       </div>
-      <select class="sort-select" id="sort-select">
-        <option value="default">Urutan Default</option>
-        <option value="asc">Harga Termurah</option>
-        <option value="desc">Harga Termahal</option>
-      </select>
     </div>
     <div class="services-grid" id="services-grid"></div>
     <div class="pagination" id="pagination"></div>
+  </div>
+</section>
+
+<!-- JASA LAIN -->
+<section id="jasa-lain">
+  <div class="section">
+    <div class="section-divider"></div>
+    <h2 class="section-title">Butuh Website?</h2>
+    <p class="section-sub">Tingkatkan profesionalisme bisnismu dengan website etalase instan.</p>
+    <div class="jasa-lain-card">
+      <h3>Jasa Pembuatan Website Profesional</h3>
+      <p>Kelola produk & harga langsung dari HP tanpa coding. Dapatkan website dengan tema premium seperti ini.</p>
+      <a href="jasa_website.html" class="jasa-lain-btn">Lihat Detail &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="display:none">
+  <div class="section">
+    <div class="section-divider"></div>
+    <h2 class="section-title">Tanya Jawab</h2>
+    <p class="section-sub">Pertanyaan yang sering diajukan.</p>
+    <div id="faq-list"></div>
   </div>
 </section>
 
@@ -494,6 +528,7 @@
 const CSV_BRANDING = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=0&single=true&output=csv';
 const CSV_DATA     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=1910038505&single=true&output=csv';
 const CSV_TESTI    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=1790988718&single=true&output=csv';
+const CSV_FAQ      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOYY28haMZrDrwXrYkOBIlHEptevtiv7O8M8RkR0G_K5vZacWRJNwGM-5N3wCjDaU-9KqzywcaL8DA/pub?gid=2001977225&single=true&output=csv';
 // ------------------------------------------------------------
 // CACHE: berapa menit data di-cache di browser sebelum fetch ulang
 // Ubah angka di bawah. Default 2 menit.
@@ -529,21 +564,22 @@ const PLATFORM_ICONS = {
   soundcloud: 'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/soundcloud.svg',
   apple:      'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/apple.svg',
   google:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/google.svg',
-};
-
-// Social links for footer — use real SVG icons
-const SOCIAL_DEFS = {
-  ig_url:      { icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/instagram.svg', label:'Instagram' },
-  tiktok_url:  { icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/tiktok.svg',    label:'TikTok' },
-  youtube_url: { icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/youtube.svg',   label:'YouTube' },
-  facebook_url:{ icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/facebook.svg',  label:'Facebook' },
-  twitter_url: { icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/x.svg',         label:'X/Twitter' },
-  telegram_url:{ icon:'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/telegram.svg',  label:'Telegram' },
+  netflix:    'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/netflix.svg',
+  capcut:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/capcut.svg',
+  canva:      'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/canva.svg',
+  gojek:      'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/gojek.svg',
+  grab:       'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/grab.svg',
+  zoom:       'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/zoom.svg',
+  bukalapak:  'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/bukalapak.svg',
+  viu:        'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/viu.svg',
+  bilibili:   'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/bilibili.svg',
+  roblox:     'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/roblox.svg',
+  steam:      'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/steam.svg',
 };
 
 // ===== STATE =====
-let branding={}, allServices=[], filteredServices=[], cart=[];
-let currentPlatform='semua', currentPage=1, currentSort='default', searchQuery='';
+let branding={}, allServices=[], filteredServices=[], cart=[], faqData=[];
+let currentPlatform='semua', currentPage=1, searchQuery='';
 
 // ===== CSV =====
 function parseCSVLine(line){
@@ -799,9 +835,7 @@ function applyFilters(){
     const q=searchQuery.toLowerCase();
     list=list.filter(s=>s.nama.toLowerCase().includes(q)||s.jenis.toLowerCase().includes(q)||s.platform.toLowerCase().includes(q));
   }
-  if(currentSort==='asc')list.sort((a,b)=>a.harga-b.harga);
-  else if(currentSort==='desc')list.sort((a,b)=>b.harga-a.harga);
-  else list.sort((a,b)=>{
+  list.sort((a,b)=>{
     const at=a.badge.toLowerCase()==='terlaris'?0:1;
     const bt=b.badge.toLowerCase()==='terlaris'?0:1;
     return at!==bt?at-bt:a.id-b.id;
@@ -838,12 +872,12 @@ function buildCard(s,idx){
   const stokLabel=stok==='habis'?'Habis':stok==='segera'?'Segera':'Tersedia';
   const badgeMap={terlaris:'badge-terlaris',promo:'badge-promo',baru:'badge-baru'};
   const badgeClass=badgeMap[s.badge.toLowerCase()]||'badge-terlaris';
-  const iconUrl=PLATFORM_ICONS[s.platform.toLowerCase()];
+  const iconUrl=PLATFORM_ICONS[s.platform.toLowerCase()] || 'https://cdn.jsdelivr.net/npm/simple-icons@9/icons/web.svg';
 
   card.innerHTML=`
     <div class="card-header">
       <div class="card-platform">
-        ${iconUrl?`<img src="${iconUrl}" alt="${esc(s.platform)}" class="card-platform-icon" loading="lazy" onerror="this.remove()">`:''}
+        <img src="${iconUrl}" alt="${esc(s.platform)}" class="card-platform-icon" loading="lazy" onerror="this.remove()">
         ${esc(s.platform)}
       </div>
       <div class="card-badges">
@@ -1061,23 +1095,44 @@ window.addEventListener('scroll',()=>{
 document.getElementById('search-input').addEventListener('input',e=>{
   searchQuery=e.target.value.trim();currentPage=1;applyFilters();
 });
-document.getElementById('sort-select').addEventListener('change',e=>{
-  currentSort=e.target.value;currentPage=1;applyFilters();
-});
+
+
+// ===== FAQ =====
+function buildFAQ(data){
+  const list=document.getElementById('faq-list');
+  const sec=document.getElementById('faq');
+  if(!list||!sec)return;
+  const valid=data.filter(f=>f.pertanyaan||f.question);
+  if(!valid.length)return;
+  sec.style.display='';
+  list.innerHTML='';
+  valid.forEach(f=>{
+    const item=document.createElement('div');
+    item.className='faq-item';
+    item.innerHTML=`
+      <button class="faq-question">${esc(f.pertanyaan||f.question||'')}</button>
+      <div class="faq-answer"><div><div style="padding-top:15px; padding-bottom:10px;">${f.jawaban||f.answer||''}</div></div></div>
+    `;
+    item.querySelector('.faq-question').addEventListener('click',()=>item.classList.toggle('active'));
+    list.appendChild(item);
+  });
+}
 
 // ===== INIT =====
 async function init(){
   initTheme();showSkeletons();updateCartUI();
   try{
-    const[bData,sData,tData]=await Promise.all([
+    const[bData,sData,tData,fData]=await Promise.all([
       fetchCSV(CSV_BRANDING,'zd_branding'),
       fetchCSV(CSV_DATA,'zd_data'),
       fetchCSV(CSV_TESTI,'zd_testi'),
+      fetchCSV(CSV_FAQ,'zd_faq'),
     ]);
     if(bData.length)applyBranding(bData);
     if(sData.length)buildServices(sData);
     else document.getElementById('services-grid').innerHTML='<div class="no-results">Gagal memuat data. Pastikan sheet sudah di-publish.</div>';
     if(tData.length)buildTestimoni(tData);
+    if(fData.length)buildFAQ(fData);
   }catch(e){console.error('init error',e)}
   setTimeout(()=>document.getElementById('loading-screen').classList.add('hidden'),2000);
 }
